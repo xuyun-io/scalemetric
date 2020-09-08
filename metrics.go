@@ -1,4 +1,4 @@
-package scale
+package scalemetric
 
 import (
 	"fmt"
