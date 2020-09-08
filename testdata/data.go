@@ -527,35 +527,33 @@ var testPod = `{
     "apiVersion": "v1",
     "kind": "Pod",
     "metadata": {
+        "annotations": {
+            "kubernetes.io/psp": "cadvisor"
+        },
         "labels": {
-            "app": "noticeserver",
+            "app": "testapp",
+            "pod-template-hash": "6674965445",
             "type": "Deployment"
         },
-        "name": "noticeserver-57568444b-dbkv8",
+        "name": "testapp-6674965445-bbhzq",
         "namespace": "default"
     },
     "spec": {
         "containers": [
             {
-                "env": [
-                    {
-                        "name": "GIN_MODE",
-                        "value": "release"
-                    }
-                ],
-                "image": "847553930390.dkr.ecr.ap-northeast-1.amazonaws.com/noticeserver:20200721-a264aad0",
+                "image": "docker.io/nginx:1.9.2",
                 "imagePullPolicy": "IfNotPresent",
-                "name": "noticeserver",
+                "name": "nginx",
                 "ports": [
                     {
-                        "containerPort": 8080,
+                        "containerPort": 80,
                         "name": "port1",
                         "protocol": "TCP"
                     }
                 ],
                 "resources": {
                     "limits": {
-                        "cpu": "1",
+                        "cpu": "2",
                         "memory": "2G"
                     },
                     "requests": {
@@ -564,18 +562,53 @@ var testPod = `{
                     }
                 },
                 "terminationMessagePath": "/dev/termination-log",
-                "terminationMessagePolicy": "File"
+                "terminationMessagePolicy": "File",
+                "volumeMounts": [
+                    {
+                        "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                        "name": "default-token-k5tdr",
+                        "readOnly": true
+                    }
+                ]
             }
         ],
         "dnsPolicy": "ClusterFirst",
         "enableServiceLinks": true,
+        "imagePullSecrets": [
+            {
+                "name": "kubestar"
+            }
+        ],
         "priority": 0,
         "restartPolicy": "Always",
         "schedulerName": "default-scheduler",
         "securityContext": {},
         "serviceAccount": "default",
         "serviceAccountName": "default",
-        "terminationGracePeriodSeconds": 30
+        "terminationGracePeriodSeconds": 30,
+        "tolerations": [
+            {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/not-ready",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+            },
+            {
+                "effect": "NoExecute",
+                "key": "node.kubernetes.io/unreachable",
+                "operator": "Exists",
+                "tolerationSeconds": 300
+            }
+        ],
+        "volumes": [
+            {
+                "name": "default-token-k5tdr",
+                "secret": {
+                    "defaultMode": 420,
+                    "secretName": "default-token-k5tdr"
+                }
+            }
+        ]
     }
 }
 `

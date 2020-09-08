@@ -9,14 +9,14 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-func ClusterScheduling(predPods []*v1.Pod, nodeList *v1.NodeList, allrunPods *v1.PodList) types.ClusterScheduling {
-	cs := types.ClusterScheduling{SchedulingStatus: make([]types.PodRequestScheduling, 0)}
-	for i := range predPods {
-		podScheduling := PodRequestScheduling(predPods[i], nodeList, allrunPods)
-		cs.SchedulingStatus = append(cs.SchedulingStatus, podScheduling)
-	}
-	return cs
-}
+// func ClusterScheduling(predPods []*v1.Pod, nodeList *v1.NodeList, allrunPods *v1.PodList) types.ClusterScheduling {
+// 	cs := types.ClusterScheduling{SchedulingStatus: make([]types.PodRequestScheduling, 0)}
+// 	for i := range predPods {
+// 		podScheduling := PodRequestScheduling(predPods[i], nodeList, allrunPods)
+// 		cs.SchedulingStatus = append(cs.SchedulingStatus, podScheduling)
+// 	}
+// 	return cs
+// }
 
 func PodRequestScheduling(predPod *v1.Pod, nodeList *v1.NodeList, allrunPods *v1.PodList) types.PodRequestScheduling {
 	var (

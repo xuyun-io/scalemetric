@@ -10,8 +10,7 @@ import (
 	schedulernodeinfo "k8s.io/kubernetes/pkg/scheduler/nodeinfo"
 )
 
-// GeneralPred return node resource scheduling status.
-func GeneralPred(node *v1.Node, nodePods []*v1.Pod, pod *v1.Pod) ([]PredicateFailureReason, error) {
+func generalNodeInfo(node *v1.Node, nodePods []*v1.Pod) *schedulernodeinfo.NodeInfo {
 	var (
 		nodeInfo = &schedulernodeinfo.NodeInfo{}
 	)
@@ -21,6 +20,12 @@ func GeneralPred(node *v1.Node, nodePods []*v1.Pod, pod *v1.Pod) ([]PredicateFai
 		nodeInfo = schedulernodeinfo.NewNodeInfo(nodePods...)
 	}
 	nodeInfo.SetNode(node)
+	return nodeInfo
+}
+
+// GeneralPred return node resource scheduling status.
+func GeneralPred(node *v1.Node, nodePods []*v1.Pod, pod *v1.Pod) ([]PredicateFailureReason, error) {
+	nodeInfo := generalNodeInfo(node, nodePods)
 	var reasons []PredicateFailureReason
 	for _, r := range noderesources.Fits(pod, nodeInfo, nil) {
 		reasons = append(reasons, &InsufficientResourceError{

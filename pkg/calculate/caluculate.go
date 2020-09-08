@@ -31,6 +31,10 @@ func NodeMaxScheduling(node *v1.Node, nodePods []*v1.Pod, predPod *v1.Pod) (int6
 	if len(conditionReason) > 0 {
 		return sum, conditionReason, nil
 	}
+	toleratesReason := PodToleratesNodeTaintsPred(node, predPod)
+	if len(toleratesReason) > 0 {
+		return sum, toleratesReason, nil
+	}
 	tempPods := make([]*v1.Pod, len(nodePods))
 	tempPod := &v1.Pod{}
 	copy(tempPods, nodePods)
