@@ -1,7 +1,6 @@
 package scale
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/xuyun-io/scalemetric/pkg/calculate"
@@ -28,8 +27,6 @@ func PodRequestScheduling(predPod *v1.Pod, nodeList *v1.NodeList, allrunPods *v1
 		wg.Add(1)
 		go func(pod *v1.Pod, no v1.Node, allPods *v1.PodList) {
 			count, conditions, _ := NodeScheduling(pod, no, allPods)
-			fmt.Println("count:", count)
-			fmt.Println("node:", no.GetName())
 			syncNodeScheduling.Append(count, types.NodeScheduling{
 				Node:                   &no,
 				PredMaxschedulingCount: count,
