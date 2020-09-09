@@ -48,7 +48,7 @@ func ClusterPodRequestScheduling(c *gin.Context) {
 		c.JSON(http.StatusOK, NewError(1, errStr))
 		return
 	}
-	status := calculate.PodRequestScheduling(pod, nodeList, pods)
+	status := calculate.ClusterPodRequestScheduling(pod, nodeList, pods)
 	c.JSON(http.StatusOK, NewOKWithData(status))
 
 }

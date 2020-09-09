@@ -8,6 +8,13 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+func ClusterPodRequestScheduling(predPod *v1.Pod, nodeList *v1.NodeList, allrunPods *v1.PodList) *types.ClusterScheduling {
+	podStatus := PodRequestScheduling(predPod, nodeList, allrunPods)
+	return &types.ClusterScheduling{
+		SchedulingStatus: []types.PodRequestScheduling{podStatus},
+	}
+}
+
 func PodRequestScheduling(predPod *v1.Pod, nodeList *v1.NodeList, allrunPods *v1.PodList) types.PodRequestScheduling {
 	var (
 		syncNodeScheduling = newSyncNodeScheduling()
