@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 )
@@ -37,4 +38,16 @@ func KubernetesClientset() kubernetes.Interface {
 		DefaultClient = clientset
 	})
 	return DefaultClient
+}
+
+func InclusterClientset() kubernetes.Interface {
+	conf, err := rest.InClusterConfig()
+	if err != nil {
+		log.Fatalf("InClusterConfig get config failed, err %v", err)
+	}
+	c, err := kubernetes.NewForConfig(conf)
+	if err != nil {
+		log.Fatalf("InClusterConfig new client failed, err %v", err)
+	}
+	return c
 }

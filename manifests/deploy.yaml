@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: scalemetric
+  namespace: kubestar
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  # "namespace" omitted since ClusterRoles are not namespaced
+  name: scalemetric
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: scalemetric
+subjects:
+- kind: ServiceAccount
+  name: scalemetric
+  namespace: kubestar
+ # apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: scalemetric
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOnsidXNlcm5hbWUiOiJrdWJlc3RhciIsInBhc3N3b3JkIjoiWHV5dW50ZWNoQDIwMjAiLCJlbWFpbCI6ImxpeWFvLm1pYW9AeHV5dW50ZWNoLmNvbSIsImF1dGgiOiJhM1ZpWlhOMFlYSTZXSFY1ZFc1MFpXTm9RREl3TWpBPSJ9fX0=
+kind: Secret
+metadata:
+  name: dockerhub
+  namespace: kubestar
+type: kubernetes.io/dockerconfigjson
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  generation: 6
+  labels:
+    app: scalemetric
+    type: Deployment
+  name: scalemetric
+  namespace: kubestar
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: scalemetric
+      type: Deployment
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: scalemetric
+        type: Deployment
+    spec:
+      containers:
+      - image: docker.io/kubestar/scalemetric:20200909-175a740e
+        imagePullPolicy: IfNotPresent
+        name: scalemetric
+        ports:
+        - containerPort: 8080
+          name: port1
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200M
+          requests:
+            cpu: 100m
+            memory: 100M
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: dockerhub
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: scalemetric
+      serviceAccountName: scalemetric
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: scalemetric
+    type: Deployment
+  name: scalemetric
+  namespace: kubestar
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: port1
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: scalemetric
+    type: Deployment
+  sessionAffinity: None
+  type: LoadBalancer

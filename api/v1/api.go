@@ -35,7 +35,7 @@ func ClusterPodRequestScheduling(c *gin.Context) {
 		c.JSON(http.StatusOK, errStr)
 		return
 	}
-	client := clientset.KubernetesClientset()
+	client := clientset.InclusterClientset()
 	nodeList, err := resources.GetNodes(client)
 	if err != nil {
 		errStr := fmt.Sprintf("cluster node get failed, %v", err)
