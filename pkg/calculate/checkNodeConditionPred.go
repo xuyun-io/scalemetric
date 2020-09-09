@@ -4,12 +4,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/xuyun-io/scalemetric/pkg/types"
 	v1 "k8s.io/api/core/v1"
 )
 
 // CheckNodeConditionPred check node ready status.
-func CheckNodeConditionPred(node *v1.Node) ([]PredicateFailureReason, error) {
-	var reasons []PredicateFailureReason
+func CheckNodeConditionPred(node *v1.Node) ([]types.PredicateFailureReason, error) {
+	var reasons []types.PredicateFailureReason
 	predicate := getNodeConditionPredicate()
 	if ok, err := predicate(node); !ok {
 		reasons = append(reasons, &NodeConditionError{

@@ -38,11 +38,6 @@ type InsufficientResourceError struct {
 	Capacity     int64
 }
 
-// PredicateFailureReason interface represents the failure reason of a predicate.
-type PredicateFailureReason interface {
-	GetReason() string
-}
-
 func (e *InsufficientResourceError) Error() string {
 	return fmt.Sprintf("Node didn't have enough resource: %s, requested: %d, used: %d, capacity: %d",
 		e.ResourceName, e.Requested, e.Used, e.Capacity)

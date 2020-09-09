@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/xuyun-io/scalemetric/pkg/rand"
+	"github.com/xuyun-io/scalemetric/pkg/types"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
@@ -23,7 +24,7 @@ func ObjectCopy(dst, src interface{}) error {
 }
 
 // NodeMaxScheduling return node max schedule.
-func NodeMaxScheduling(node *v1.Node, nodePods []*v1.Pod, predPod *v1.Pod) (int64, []PredicateFailureReason, error) {
+func nodeMaxScheduling(node *v1.Node, nodePods []*v1.Pod, predPod *v1.Pod) (int64, []types.PredicateFailureReason, error) {
 	var (
 		sum int64
 	)
@@ -55,7 +56,7 @@ func NodeMaxScheduling(node *v1.Node, nodePods []*v1.Pod, predPod *v1.Pod) (int6
 }
 
 // NodeSchedulingStatus return node scheduling status.
-func nodeSchedulingStatus(node *v1.Node, nodePods []*v1.Pod, pod *v1.Pod) ([]PredicateFailureReason, error) {
+func nodeSchedulingStatus(node *v1.Node, nodePods []*v1.Pod, pod *v1.Pod) ([]types.PredicateFailureReason, error) {
 	return GeneralPred(node, nodePods, pod)
 
 }

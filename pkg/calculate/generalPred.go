@@ -1,6 +1,7 @@
 package calculate
 
 import (
+	"github.com/xuyun-io/scalemetric/pkg/types"
 	v1 "k8s.io/api/core/v1"
 	pluginhelper "k8s.io/kubernetes/pkg/scheduler/framework/plugins/helper"
 	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/nodeaffinity"
@@ -24,9 +25,9 @@ func generalNodeInfo(node *v1.Node, nodePods []*v1.Pod) *schedulernodeinfo.NodeI
 }
 
 // GeneralPred return node resource scheduling status.
-func GeneralPred(node *v1.Node, nodePods []*v1.Pod, pod *v1.Pod) ([]PredicateFailureReason, error) {
+func GeneralPred(node *v1.Node, nodePods []*v1.Pod, pod *v1.Pod) ([]types.PredicateFailureReason, error) {
 	nodeInfo := generalNodeInfo(node, nodePods)
-	var reasons []PredicateFailureReason
+	var reasons []types.PredicateFailureReason
 	for _, r := range noderesources.Fits(pod, nodeInfo, nil) {
 		reasons = append(reasons, &InsufficientResourceError{
 			ResourceName: r.ResourceName,

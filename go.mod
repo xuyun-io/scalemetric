@@ -3,6 +3,7 @@ module github.com/xuyun-io/scalemetric
 go 1.14
 
 require (
+	github.com/gin-gonic/gin v1.6.3
 	github.com/googleapis/gnostic v0.5.1 // indirect
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
