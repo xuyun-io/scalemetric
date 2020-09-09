@@ -8,6 +8,6 @@ import (
 // InitRoute define init route.
 func InitRoute() *gin.Engine {
 	router := gin.Default()
-	router.POST("/api/v1/sms/webhook", v1.ClusterPodRequestScheduling)
+	router.POST("/api/cluster/scalemetric", v1.ClusterPodRequestScheduling)
 	return router
 }
