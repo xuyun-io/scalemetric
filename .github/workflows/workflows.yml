@@ -1,0 +1,38 @@
+name: KubeStar CICD
+# This workflow is triggered on pushes to the repository.
+on: push
+
+jobs:
+  build:
+    name: Go and Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - name: "checkout go"
+        uses: actions/checkout@master
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: ./…
+      - name: "manifest"
+        run:  echo `git log | grep commit | head -1 | cut -d" " -f2` > manifest
+      - name: "setup go"
+        uses: actions/setup-go@v1
+        with:
+          go-version: '1.14'
+          repository: xuyun-io/provider
+          token: ${{ secrets.GitHub_PAT }}
+      - uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: "build"
+        run: mkdir -p bin; CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags=local -o bin/scalemetric main.go
+      - name: Publish to Registry
+        uses: mlycore/Publish-Docker-Github-Action@master
+        with:
+          name: kubestar/scalemetric
+          dockerfile: Dockerfile
+          username: kubestar
+          password: Xuyuntech@2020
