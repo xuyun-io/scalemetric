@@ -67,7 +67,7 @@ spec:
         type: Deployment
     spec:
       containers:
-      - image: docker.io/kubestar/scalemetric:20200909-710134a1
+      - image: docker.io/kubestar/scalemetric:20200910-1867ce6e
         imagePullPolicy: IfNotPresent
         name: scalemetric
         ports:
