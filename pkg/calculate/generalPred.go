@@ -18,7 +18,8 @@ func generalNodeInfo(node *v1.Node, nodePods []*v1.Pod) *schedulernodeinfo.NodeI
 	if len(nodePods) <= 0 {
 		nodeInfo = schedulernodeinfo.NewNodeInfo(&v1.Pod{})
 	} else {
-		nodeInfo = schedulernodeinfo.NewNodeInfo(nodePods...)
+		nodeActivePods := GetActivePods(nodePods)
+		nodeInfo = schedulernodeinfo.NewNodeInfo(nodeActivePods...)
 	}
 	nodeInfo.SetNode(node)
 	return nodeInfo

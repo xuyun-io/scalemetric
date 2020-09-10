@@ -26,4 +26,5 @@ type NodeScheduling struct {
 // PredicateFailureReason interface represents the failure reason of a predicate.
 type PredicateFailureReason interface {
 	GetReason() string
+	Error() string
 }
