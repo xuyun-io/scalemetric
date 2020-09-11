@@ -3,8 +3,11 @@ module github.com/xuyun-io/scalemetric
 go 1.14
 
 require (
+	github.com/aws/aws-lambda-go v1.19.1
+	github.com/aws/aws-sdk-go v1.34.21
 	github.com/gin-gonic/gin v1.6.3
 	github.com/googleapis/gnostic v0.5.1 // indirect
+	github.com/xuyun-io/cloudprovider v0.0.9
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect

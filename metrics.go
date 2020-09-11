@@ -45,4 +45,5 @@ func Metric(pod *v1.Pod) {
 		lastR := fmt.Sprintf("     节点: %s, 还能调度: %d, 原因: %s", nodesche.Node.GetName(), nodesche.PredMaxschedulingCount, nodesche.LastReason[0].Error())
 		fmt.Println(lastR)
 	}
+	panic("test")
 }

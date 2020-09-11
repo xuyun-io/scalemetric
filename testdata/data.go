@@ -527,12 +527,8 @@ var testPod = `{
     "apiVersion": "v1",
     "kind": "Pod",
     "metadata": {
-        "annotations": {
-            "kubernetes.io/psp": "cadvisor"
-        },
         "labels": {
             "app": "testapp",
-            "pod-template-hash": "6674965445",
             "type": "Deployment"
         },
         "name": "testapp-6674965445-bbhzq",
@@ -560,55 +556,17 @@ var testPod = `{
                         "cpu": "1",
                         "memory": "1G"
                     }
-                },
-                "terminationMessagePath": "/dev/termination-log",
-                "terminationMessagePolicy": "File",
-                "volumeMounts": [
-                    {
-                        "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
-                        "name": "default-token-k5tdr",
-                        "readOnly": true
-                    }
-                ]
+                }
             }
         ],
         "dnsPolicy": "ClusterFirst",
         "enableServiceLinks": true,
-        "imagePullSecrets": [
-            {
-                "name": "kubestar"
-            }
-        ],
         "priority": 0,
         "restartPolicy": "Always",
         "schedulerName": "default-scheduler",
-        "securityContext": {},
         "serviceAccount": "default",
         "serviceAccountName": "default",
-        "terminationGracePeriodSeconds": 30,
-        "tolerations": [
-            {
-                "effect": "NoExecute",
-                "key": "node.kubernetes.io/not-ready",
-                "operator": "Exists",
-                "tolerationSeconds": 300
-            },
-            {
-                "effect": "NoExecute",
-                "key": "node.kubernetes.io/unreachable",
-                "operator": "Exists",
-                "tolerationSeconds": 300
-            }
-        ],
-        "volumes": [
-            {
-                "name": "default-token-k5tdr",
-                "secret": {
-                    "defaultMode": 420,
-                    "secretName": "default-token-k5tdr"
-                }
-            }
-        ]
+        "terminationGracePeriodSeconds": 30
     }
 }
 `
