@@ -116,7 +116,7 @@ func ClusterSchedulingToAWSMetric(scheduling *types.ClusterScheduling) []*cloudw
 
 	m := &cloudwatch.MetricDatum{
 		MetricName: aws.String("clusterMaxSchedulingPodPred"),
-		Unit:       aws.String("num"),
+		Unit:       aws.String("None"),
 		Value:      aws.Float64(toFloat64(schedulingStatus.PredMaxschedulingCount)),
 		Dimensions: dimension,
 		Timestamp:  aws.Time(time.Now()),
