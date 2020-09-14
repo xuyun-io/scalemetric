@@ -1,6 +1,8 @@
 package tencent
 
 import (
+	"context"
+
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -15,7 +17,7 @@ func (c *Client) getNode() *v1.NodeList {
 		if err != nil {
 			panic(err.Error())
 		}
-		nodeList, err := k8sClient.CoreV1().Nodes().List(metav1.ListOptions{})
+		nodeList, err := k8sClient.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
 			panic(err.Error())
 		}
