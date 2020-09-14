@@ -41,7 +41,7 @@ func (conf *Config) Get() error {
 		AccessKey:       os.Getenv(AccessKey),
 		SecretAccessKey: os.Getenv(SecretAccessKey),
 		ClusterName:     os.Getenv(ClusterName),
-		LambdaNamespace: os.Getenv(LambdaNamespace)
+		LambdaNamespace: os.Getenv(LambdaNamespace),
 	}
 	if len(cfg.RegionID) <= 0 {
 		return errors.New("RegionID is not allowed to be emtpy")
@@ -76,8 +76,10 @@ func lambdaHandler() {
 	if err != nil {
 		panic(err.Error())
 	}
-
-	k8sclient := client.K8SClientset().Clientset(cfg.ClusterName)
+	k8sclient, err := client.K8SClientset().Clientset(cfg.ClusterName)
+	if err != nil {
+		panic(err.Error())
+	}
 	nodeList, err := resources.GetNodes(k8sclient)
 	if err != nil {
 		panic(err.Error())
@@ -92,15 +94,15 @@ func lambdaHandler() {
 	pod := &v1.Pod{}
 	status := calculate.ClusterPodRequestScheduling(pod, nodeList, podList)
 	metrics := ClusterSchedulingToAWSMetric(status)
-	cw,err := newCloudwatchClient(cfg)
-	if err!=nil {
+	cw, err := newCloudwatchClient(cfg)
+	if err != nil {
 		panic(err.Error())
 	}
-	output,err:= PutMetrics(cw,cfg.LambdaNamespace,metrics)
-	if err!=nil {
+	output, err := PutMetrics(cw, cfg.LambdaNamespace, metrics)
+	if err != nil {
 		panic(err.Error())
 	}
-	
+	fmt.Printf("output: %v\n", output)
 
 }
 
@@ -127,7 +129,7 @@ func getAWSConfig(region, accessKey, secretAccessKey string) *aws.Config {
 }
 
 // PutMetrics return put metrics.
-func PutMetrics(cw *cloudwatch.CloudWatch,namespace string, data []*cloudwatch.MetricDatum) (*cloudwatch.PutMetricDataOutput, error) {
+func PutMetrics(cw *cloudwatch.CloudWatch, namespace string, data []*cloudwatch.MetricDatum) (*cloudwatch.PutMetricDataOutput, error) {
 	input := &cloudwatch.PutMetricDataInput{
 		Namespace:  aws.String(namespace),
 		MetricData: data,
