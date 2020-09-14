@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -24,6 +25,8 @@ const (
 	SecretAccessKey = "SecretAccessKey"
 	ClusterName     = "ClusterName"
 	LambdaNamespace = "LambdaNamespace"
+	CPURequest      = "CPURequest"
+	MemoryRequest   = "MemoryRequest"
 )
 
 type Config struct {
@@ -32,6 +35,8 @@ type Config struct {
 	SecretAccessKey string
 	ClusterName     string
 	LambdaNamespace string
+	MemoryRequest   string
+	CPURequest      string
 }
 
 // Get get config from env
@@ -42,6 +47,8 @@ func (conf *Config) Get() error {
 		SecretAccessKey: os.Getenv(SecretAccessKey),
 		ClusterName:     os.Getenv(ClusterName),
 		LambdaNamespace: os.Getenv(LambdaNamespace),
+		CPURequest:      os.Getenv(CPURequest),
+		MemoryRequest:   os.Getenv(MemoryRequest),
 	}
 	if len(cfg.RegionID) <= 0 {
 		return errors.New("RegionID is not allowed to be emtpy")
@@ -59,11 +66,21 @@ func (conf *Config) Get() error {
 	if len(cfg.LambdaNamespace) <= 0 {
 		return errors.New("LambdaNamespace is not allowed to be empty")
 	}
+	// resources
+	if len(cfg.MemoryRequest) <= 0 {
+		return errors.New("MemoryRequest is not allowed to be empty")
+	}
+	if len(cfg.CPURequest) <= 0 {
+		return errors.New("CPURequest is not allowed to be empty")
+	}
 	return nil
 }
 
-func init() {
-
+func generatePod(cpuRequest, memoryRequest string) (*v1.Pod, error) {
+	podString := getPodString(cpuRequest, memoryRequest)
+	pod := &v1.Pod{}
+	err := json.Unmarshal([]byte(podString), pod)
+	return pod, err
 }
 
 func lambdaHandler() {
@@ -91,7 +108,10 @@ func lambdaHandler() {
 	if err != nil {
 		panic(err.Error())
 	}
-	pod := &v1.Pod{}
+	pod, err := generatePod(cfg.CPURequest, cfg.MemoryRequest)
+	if err != nil {
+		panic(err.Error())
+	}
 	status := calculate.ClusterPodRequestScheduling(pod, nodeList, podList)
 	metrics := ClusterSchedulingToAWSMetric(status)
 	cw, err := newCloudwatchClient(cfg)
