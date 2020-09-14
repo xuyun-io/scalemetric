@@ -1,6 +1,11 @@
 package types
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+
+	v1 "k8s.io/api/core/v1"
+)
 
 var podTemp string = `{
     "apiVersion": "v1",
@@ -45,4 +50,12 @@ var podTemp string = `{
 
 func getPodString(cpu, memory string) string {
 	return fmt.Sprintf(podTemp, cpu, memory, cpu, memory)
+}
+
+// GeneratePod return pod and error.
+func GeneratePod(cpuRequest, memoryRequest string) (*v1.Pod, error) {
+	podString := getPodString(cpuRequest, memoryRequest)
+	pod := &v1.Pod{}
+	err := json.Unmarshal([]byte(podString), pod)
+	return pod, err
 }

@@ -6,7 +6,9 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/xuyun-io/cloudprovider"
 	"github.com/xuyun-io/scalemetric/pkg/calculate"
+	pkglambda "github.com/xuyun-io/scalemetric/pkg/lambda"
 	"github.com/xuyun-io/scalemetric/pkg/resources"
+	"github.com/xuyun-io/scalemetric/pkg/types"
 )
 
 func main() {
@@ -24,8 +26,8 @@ func main() {
 
 func LambdaHandler() {
 	// get client
-	cfg := &Config{}
-	if err := cfg.Get(); err != nil {
+	cfg, err := pkglambda.Get()
+	if err != nil {
 		panic(err.Error())
 	}
 	client, err := cloudprovider.NewAWSProviderConfig(cfg.RegionID, cfg.AccessKey, cfg.SecretAccessKey).NewClient()
@@ -47,17 +49,17 @@ func LambdaHandler() {
 	if err != nil {
 		panic(err.Error())
 	}
-	pod, err := generatePod(cfg.CPURequest, cfg.MemoryRequest)
+	pod, err := types.GeneratePod(cfg.CPURequest, cfg.MemoryRequest)
 	if err != nil {
 		panic(err.Error())
 	}
 	status := calculate.ClusterPodRequestScheduling(pod, nodeList, podList)
-	metrics := ClusterSchedulingToAWSMetric(status)
-	cw, err := newCloudwatchClient(cfg)
+	metrics := pkglambda.ClusterSchedulingToAWSMetric(status)
+	cw, err := pkglambda.NewCloudwatchClient(cfg)
 	if err != nil {
 		panic(err.Error())
 	}
-	output, err := PutMetrics(cw, cfg.LambdaNamespace, metrics)
+	output, err := pkglambda.PutMetrics(cw, cfg.LambdaNamespace, metrics)
 	if err != nil {
 		panic(err.Error())
 	}

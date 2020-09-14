@@ -1,7 +1,6 @@
 package lambda
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -12,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/xuyun-io/scalemetric/pkg/types"
-	v1 "k8s.io/api/core/v1"
 )
 
 const (
@@ -37,7 +35,7 @@ type Config struct {
 }
 
 // Get get config from env
-func (conf *Config) Get() (*Config, error) {
+func Get() (*Config, error) {
 	cfg := &Config{
 		RegionID:        os.Getenv(RegionID),
 		AccessKey:       os.Getenv(AccessKey),
@@ -73,15 +71,8 @@ func (conf *Config) Get() (*Config, error) {
 	return cfg, nil
 }
 
-func generatePod(cpuRequest, memoryRequest string) (*v1.Pod, error) {
-	podString := getPodString(cpuRequest, memoryRequest)
-	pod := &v1.Pod{}
-	err := json.Unmarshal([]byte(podString), pod)
-	return pod, err
-}
-
 // NewCloudwatchClient define cloudwatch
-func newCloudwatchClient(cfg *Config) (*cloudwatch.CloudWatch, error) {
+func NewCloudwatchClient(cfg *Config) (*cloudwatch.CloudWatch, error) {
 	awsConf := getAWSConfig(cfg.RegionID, cfg.AccessKey, cfg.SecretAccessKey)
 	ss, err := session.NewSession(awsConf)
 	if err != nil {
