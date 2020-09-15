@@ -131,6 +131,7 @@ func toFloat64(i int64) float64 {
 	return float64(in)
 }
 
+// AutoScalingMapToAWSMetric return auto scaling map to aws metric.
 func AutoScalingMapToAWSMetric(clusterName, autoScalingGroupKey string, m AutoScalingMap) []*cloudwatch.MetricDatum {
 	dimension := &cloudwatch.Dimension{
 		Name:  aws.String("ClusterName"),
