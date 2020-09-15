@@ -2,7 +2,6 @@ package lambda
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"time"
 
@@ -14,36 +13,39 @@ import (
 )
 
 const (
-	RegionID        = "RegionID"
-	AccessKey       = "AccessKey"
-	SecretAccessKey = "SecretAccessKey"
-	ClusterName     = "ClusterName"
-	LambdaNamespace = "LambdaNamespace"
-	CPURequest      = "CPURequest"
-	MemoryRequest   = "MemoryRequest"
+	RegionID            = "RegionID"
+	AccessKey           = "AccessKey"
+	SecretAccessKey     = "SecretAccessKey"
+	ClusterName         = "ClusterName"
+	LambdaNamespace     = "LambdaNamespace"
+	CPURequest          = "CPURequest"
+	MemoryRequest       = "MemoryRequest"
+	AutoScalingGroupKey = "AutoScalingGroupKey"
 )
 
 // Config define config.
 type Config struct {
-	RegionID        string
-	AccessKey       string
-	SecretAccessKey string
-	ClusterName     string
-	LambdaNamespace string
-	MemoryRequest   string
-	CPURequest      string
+	RegionID            string
+	AccessKey           string
+	SecretAccessKey     string
+	ClusterName         string
+	LambdaNamespace     string
+	MemoryRequest       string
+	CPURequest          string
+	AutoScalingGroupKey string
 }
 
 // Get get config from env
 func Get() (*Config, error) {
 	cfg := &Config{
-		RegionID:        os.Getenv(RegionID),
-		AccessKey:       os.Getenv(AccessKey),
-		SecretAccessKey: os.Getenv(SecretAccessKey),
-		ClusterName:     os.Getenv(ClusterName),
-		LambdaNamespace: os.Getenv(LambdaNamespace),
-		CPURequest:      os.Getenv(CPURequest),
-		MemoryRequest:   os.Getenv(MemoryRequest),
+		RegionID:            os.Getenv(RegionID),
+		AccessKey:           os.Getenv(AccessKey),
+		SecretAccessKey:     os.Getenv(SecretAccessKey),
+		ClusterName:         os.Getenv(ClusterName),
+		LambdaNamespace:     os.Getenv(LambdaNamespace),
+		CPURequest:          os.Getenv(CPURequest),
+		MemoryRequest:       os.Getenv(MemoryRequest),
+		AutoScalingGroupKey: os.Getenv(AutoScalingGroupKey),
 	}
 	if len(cfg.RegionID) <= 0 {
 		return cfg, errors.New("RegionID is not allowed to be emtpy")
@@ -99,33 +101,94 @@ func PutMetrics(cw *cloudwatch.CloudWatch, namespace string, data []*cloudwatch.
 }
 
 // ClusterSchedulingToAWSMetric return cloud watch metric data.
-func ClusterSchedulingToAWSMetric(scheduling *types.ClusterScheduling) []*cloudwatch.MetricDatum {
+func ClusterSchedulingToAWSMetric(cfg *Config, scheduling *types.ClusterScheduling) []*cloudwatch.MetricDatum {
 	metrics := make([]*cloudwatch.MetricDatum, 0)
 	dimension := make([]*cloudwatch.Dimension, 0)
 	schedulingStatus := scheduling.SchedulingStatus[0]
-	// cpu := sche.Pod.Spec.Containers[0].Resources.Requests.Cpu()
-	// memory := sche.Pod.Spec.Containers[0].Resources.Requests.Memory()
-	// sche.PredMaxschedulingCount
-	for j := range schedulingStatus.NodeScheduling {
-		nodeStatus := schedulingStatus.NodeScheduling[j]
-		dimension = append(dimension, &cloudwatch.Dimension{
-			Name:  aws.String(nodeStatus.Node.GetName()),
-			Value: aws.String(fmt.Sprintf("%d", nodeStatus.PredMaxschedulingCount)),
-		})
-	}
-
+	dimension = append(dimension, &cloudwatch.Dimension{
+		Name:  aws.String("ClusterName"),
+		Value: aws.String(cfg.ClusterName),
+	})
 	m := &cloudwatch.MetricDatum{
 		MetricName: aws.String("clusterMaxSchedulingPodPred"),
-		Unit:       aws.String("None"),
+		Unit:       aws.String("Count"),
 		Value:      aws.Float64(toFloat64(schedulingStatus.PredMaxschedulingCount)),
 		Dimensions: dimension,
 		Timestamp:  aws.Time(time.Now()),
 	}
+
 	metrics = append(metrics, m)
+	groupMetrics := filterGroup(cfg.AutoScalingGroupKey, scheduling)
+	if len(groupMetrics) > 0 {
+		gm := AutoScalingMapToAWSMetric(cfg.ClusterName, cfg.AutoScalingGroupKey, groupMetrics)
+		metrics = append(metrics, gm...)
+	}
 	return metrics
 }
 
 func toFloat64(i int64) float64 {
 	in := int(i)
 	return float64(in)
+}
+
+func AutoScalingMapToAWSMetric(clusterName, autoScalingGroupKey string, m AutoScalingMap) []*cloudwatch.MetricDatum {
+	dimension := &cloudwatch.Dimension{
+		Name:  aws.String("ClusterName"),
+		Value: aws.String(clusterName),
+	}
+	metrics := make([]*cloudwatch.MetricDatum, 0)
+	for k, v := range m {
+		dimensions := []*cloudwatch.Dimension{dimension}
+		dimensions = append(dimensions, &cloudwatch.Dimension{
+			Name:  aws.String(autoScalingGroupKey),
+			Value: aws.String(k),
+		}, dimension)
+		metrics = append(metrics, &cloudwatch.MetricDatum{
+			MetricName: aws.String("clusterMaxSchedulingPodPred"),
+			Unit:       aws.String("Count"),
+			Value:      aws.Float64(toFloat64(v)),
+			Timestamp:  aws.Time(time.Now()),
+			Dimensions: dimensions,
+		})
+	}
+	return metrics
+
+}
+
+func filterGroup(key string, scheduling *types.ClusterScheduling) AutoScalingMap {
+	if len(key) <= 0 {
+		return nil
+	}
+	m := NewAutoScalingMap()
+	for i := range scheduling.SchedulingStatus {
+		for j := range scheduling.SchedulingStatus[i].NodeScheduling {
+			nodeScheduling := scheduling.SchedulingStatus[i].NodeScheduling[j]
+
+			labels := nodeScheduling.Node.GetLabels()
+			v, ok := labels[key]
+			if ok {
+				m.Add(v, nodeScheduling.PredMaxschedulingCount)
+			}
+		}
+	}
+	return m
+}
+
+type AutoScalingMap map[string]int64
+
+func NewAutoScalingMap() AutoScalingMap {
+	return make(map[string]int64)
+}
+
+func (m AutoScalingMap) Add(key string, value int64) {
+	v, ok := m[key]
+	if ok {
+		m[key] = v + value
+		return
+	}
+	m[key] = value
+}
+
+func (m AutoScalingMap) Get() map[string]int64 {
+	return m
 }

@@ -54,7 +54,7 @@ func LambdaHandler() {
 		panic(err.Error())
 	}
 	status := calculate.ClusterPodRequestScheduling(pod, nodeList, podList)
-	metrics := pkglambda.ClusterSchedulingToAWSMetric(status)
+	metrics := pkglambda.ClusterSchedulingToAWSMetric(cfg, status)
 	cw, err := pkglambda.NewCloudwatchClient(cfg)
 	if err != nil {
 		panic(err.Error())
