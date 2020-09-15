@@ -2,6 +2,8 @@ package lambda
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -22,18 +24,6 @@ const (
 	MemoryRequest       = "MemoryRequest"
 	AutoScalingGroupKey = "AutoScalingGroupKey"
 )
-
-// Config define config.
-type Config struct {
-	RegionID            string
-	AccessKey           string
-	SecretAccessKey     string
-	ClusterName         string
-	LambdaNamespace     string
-	MemoryRequest       string
-	CPURequest          string
-	AutoScalingGroupKey string
-}
 
 // Get get config from env
 func Get() (*Config, error) {
@@ -110,13 +100,12 @@ func ClusterSchedulingToAWSMetric(cfg *Config, scheduling *types.ClusterScheduli
 		Value: aws.String(cfg.ClusterName),
 	})
 	m := &cloudwatch.MetricDatum{
-		MetricName: aws.String("clusterMaxSchedulingPodPred"),
+		MetricName: aws.String("ClusterMaxSchedulingPodPred"),
 		Unit:       aws.String("Count"),
 		Value:      aws.Float64(toFloat64(schedulingStatus.PredMaxschedulingCount)),
 		Dimensions: dimension,
 		Timestamp:  aws.Time(time.Now()),
 	}
-
 	metrics = append(metrics, m)
 	groupMetrics := filterGroup(cfg.AutoScalingGroupKey, scheduling)
 	if len(groupMetrics) > 0 {
@@ -139,13 +128,14 @@ func AutoScalingMapToAWSMetric(clusterName, autoScalingGroupKey string, m AutoSc
 	}
 	metrics := make([]*cloudwatch.MetricDatum, 0)
 	for k, v := range m {
+		log.Println(fmt.Sprintf("labels %s= %s  AutoGroupMaxSchedulingPodPred: %d", autoScalingGroupKey, k, v))
 		dimensions := []*cloudwatch.Dimension{dimension}
 		dimensions = append(dimensions, &cloudwatch.Dimension{
 			Name:  aws.String(autoScalingGroupKey),
 			Value: aws.String(k),
-		}, dimension)
+		})
 		metrics = append(metrics, &cloudwatch.MetricDatum{
-			MetricName: aws.String("clusterMaxSchedulingPodPred"),
+			MetricName: aws.String("ClusterMaxSchedulingPodPred"),
 			Unit:       aws.String("Count"),
 			Value:      aws.Float64(toFloat64(v)),
 			Timestamp:  aws.Time(time.Now()),
@@ -164,7 +154,6 @@ func filterGroup(key string, scheduling *types.ClusterScheduling) AutoScalingMap
 	for i := range scheduling.SchedulingStatus {
 		for j := range scheduling.SchedulingStatus[i].NodeScheduling {
 			nodeScheduling := scheduling.SchedulingStatus[i].NodeScheduling[j]
-
 			labels := nodeScheduling.Node.GetLabels()
 			v, ok := labels[key]
 			if ok {
@@ -172,24 +161,5 @@ func filterGroup(key string, scheduling *types.ClusterScheduling) AutoScalingMap
 			}
 		}
 	}
-	return m
-}
-
-type AutoScalingMap map[string]int64
-
-func NewAutoScalingMap() AutoScalingMap {
-	return make(map[string]int64)
-}
-
-func (m AutoScalingMap) Add(key string, value int64) {
-	v, ok := m[key]
-	if ok {
-		m[key] = v + value
-		return
-	}
-	m[key] = value
-}
-
-func (m AutoScalingMap) Get() map[string]int64 {
 	return m
 }
