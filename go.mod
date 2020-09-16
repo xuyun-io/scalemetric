@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.34.21
 	github.com/gin-gonic/gin v1.6.3
 	github.com/googleapis/gnostic v0.5.1 // indirect
+	github.com/mlycore/log v0.2.6
 	github.com/xuyun-io/cloudprovider v0.0.9
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect

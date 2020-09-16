@@ -23,6 +23,7 @@ func Metric(pod *v1.Pod) {
 	nodes, err := resources.GetNodes(client)
 	if err != nil {
 		panic(err.Error())
+
 	}
 	if len(nodes.Items) <= 0 {
 		panic("nodes")

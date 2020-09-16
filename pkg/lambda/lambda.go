@@ -2,8 +2,6 @@ package lambda
 
 import (
 	"errors"
-	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -11,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/mlycore/log"
 	"github.com/xuyun-io/scalemetric/pkg/types"
 )
 
@@ -106,6 +105,7 @@ func ClusterSchedulingToAWSMetric(cfg *Config, scheduling *types.ClusterScheduli
 		Dimensions: dimension,
 		Timestamp:  aws.Time(time.Now()),
 	}
+	log.Infof("ClusterMaxSchedulingPodPred: %v", schedulingStatus.PredMaxschedulingCount)
 	metrics = append(metrics, m)
 	groupMetrics := filterGroup(cfg.AutoScalingGroupKey, scheduling)
 	if len(groupMetrics) > 0 {
@@ -128,7 +128,6 @@ func AutoScalingMapToAWSMetric(clusterName, autoScalingGroupKey string, m AutoSc
 	}
 	metrics := make([]*cloudwatch.MetricDatum, 0)
 	for k, v := range m {
-		log.Println(fmt.Sprintf("labels %s= %s  AutoGroupMaxSchedulingPodPred: %d", autoScalingGroupKey, k, v))
 		dimensions := []*cloudwatch.Dimension{dimension}
 		dimensions = append(dimensions, &cloudwatch.Dimension{
 			Name:  aws.String(autoScalingGroupKey),
@@ -157,6 +156,7 @@ func filterGroup(key string, scheduling *types.ClusterScheduling) AutoScalingMap
 			labels := nodeScheduling.Node.GetLabels()
 			v, ok := labels[key]
 			if ok {
+				log.Infof("%s:$s: %v", key, v, nodeScheduling.PredMaxschedulingCount)
 				m.Add(v, nodeScheduling.PredMaxschedulingCount)
 			}
 		}
